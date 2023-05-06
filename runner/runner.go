@@ -103,6 +103,10 @@ func (runner *DockerRunner) Run(image string, input string) (*RunResult, error) 
 				ReadOnly: false,
 			},
 		},
+		Resources: container.Resources{
+			Memory:   256 * 1024 * 1024, // 256MB
+			NanoCPUs: 1000000000,        // 1 CPU
+		},
 	}
 	var networkConfig *network.NetworkingConfig = nil
 	var platform *specs.Platform = nil
