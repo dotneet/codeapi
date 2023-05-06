@@ -1,0 +1,7 @@
+.idea
+__debug_bin
+*.log
+*.out
+*.bak
+*.bak.*
+*.local
