@@ -1,0 +1,19 @@
+{
+  "schema_version": "v1",
+  "name_for_model": "codeapi",
+  "name_for_human": "CodeAPI Plugin",
+  "description_for_model": "Plugin for running programming language(such as python) to analyze datasets. Use it whenever a user want to analyze datasets such as json, csv, long text.",
+  "description_for_human": "Analyze datasets using programminga language(such as python).",
+  "auth": {
+    "type": "user_http",
+    "authorization_type": "bearer"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "${api_base}/.well-known/openapi.yaml",
+    "has_user_authentication": false
+  },
+  "logo_url": "${api_base}/.well-known/logo.png",
+  "contact_email": "example@example.com",
+  "legal_info_url": "${api_base}/legal-info"
+}

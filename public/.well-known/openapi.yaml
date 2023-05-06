@@ -1,0 +1,131 @@
+openapi: 3.1.0
+info:
+  title: CodeAPI Plugin
+  description: Run program code such as python to analyze datasets. Use it whenever a user want to analyze datasets such as json, csv, long text.
+  version: 1.0.0
+  servers:
+    - url: ${api_base}
+paths:
+  /api/run:
+    post:
+      summary: Run code
+      description: Run program code.
+      operationId: run_code
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunRequest"
+        required: true
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/text:
+              schema:
+                $ref: "#/components/schemas/RunResponse"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+      security:
+        - HTTPBearer: []
+components:
+  schemas:
+    DocumentChunkMetadata:
+      title: DocumentChunkMetadata
+      type: object
+      properties:
+        source:
+          $ref: "#/components/schemas/Source"
+        source_id:
+          title: Source Id
+          type: string
+        url:
+          title: Url
+          type: string
+        created_at:
+          title: Created At
+          type: string
+        author:
+          title: Author
+          type: string
+        document_id:
+          title: Document Id
+          type: string
+    DocumentChunkWithScore:
+      title: DocumentChunkWithScore
+      required:
+        - text
+        - metadata
+        - score
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        text:
+          title: Text
+          type: string
+        metadata:
+          $ref: "#/components/schemas/DocumentChunkMetadata"
+        embedding:
+          title: Embedding
+          type: array
+          items:
+            type: number
+        score:
+          title: Score
+          type: number
+    DocumentMetadataFilter:
+      title: DocumentMetadataFilter
+      type: object
+      properties:
+        document_id:
+          title: Document Id
+          type: string
+        source:
+          $ref: "#/components/schemas/Source"
+        source_id:
+          title: Source Id
+          type: string
+        author:
+          title: Author
+          type: string
+        start_date:
+          title: Start Date
+          type: string
+        end_date:
+          title: End Date
+          type: string
+    HTTPValidationError:
+      title: HTTPValidationError
+      type: object
+      properties:
+        detail:
+          title: Detail
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationError"
+    RunRequest:
+      title: RunRequest
+      required:
+        - language
+        - code
+      type: object
+      properties:
+        language:
+          title: Language
+          type: string
+        code:
+          title: Code
+          type: string
+    RunResponse:
+      title: RunResponse
+      type: string
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer
