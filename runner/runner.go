@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/dotneet/codeapi/storage"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -53,9 +52,9 @@ func (runner *DockerRunner) List() {
 }
 
 type RunResult struct {
-	RunId       string
-	Output      string
-	ObjectNames []string
+	RunId     string
+	Output    string
+	ImageUrls []string
 }
 
 func (runner *DockerRunner) appendTimeoutHandler(code string) string {
@@ -80,7 +79,7 @@ func (runner *DockerRunner) Run(image string, input string) (*RunResult, error) 
 	runId := uuid.String()
 
 	// Create temporary directory
-	tmpDir, err := ioutil.TempDir("", "runner")
+	tmpDir, err := os.MkdirTemp("", "runner")
 	if err != nil {
 		return nil, err
 	}
@@ -156,39 +155,38 @@ func (runner *DockerRunner) Run(image string, input string) (*RunResult, error) 
 		return nil, err
 	}
 
-	// Read output from container's stdout and write it to the pipe
-	resultChannel := make(chan string)
-	objectNames := make([]string, 0)
-	go func() {
-		// Remove the container when done
-		runner.client.ContainerRemove(context.Background(), response.ID, types.ContainerRemoveOptions{Force: true})
+	// Remove the container when done
+	runner.client.ContainerRemove(context.Background(), response.ID, types.ContainerRemoveOptions{Force: true})
 
-		// Check for .png files in the temporary directory
-		filepath.Walk(tmpDir, func(path string, info os.FileInfo, err error) error {
+	// Read output from container's stdout and write it to the pipe
+	imageUrls := make([]string, 0)
+
+	// Check for .png files in the temporary directory
+	filepath.Walk(tmpDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		ext := filepath.Ext(path)
+		if ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".bmp" {
+			key, err := runner.imageBucket.PutObject(runId, path)
 			if err != nil {
 				return err
 			}
-
-			ext := filepath.Ext(path)
-			if ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".bmp" {
-				objectName, err := runner.imageBucket.PutObject(runId, path)
-				if err != nil {
-					return err
-				}
-				objectNames = append(objectNames, objectName)
+			signedUrl, err := runner.imageBucket.GetSignedUrl(key)
+			if err != nil {
+				return err
 			}
-			return nil
-		})
-		if err != nil {
-			fmt.Println("Error:", err)
+			imageUrls = append(imageUrls, signedUrl)
 		}
-		resultChannel <- "ok"
-	}()
-
-	<-resultChannel
+		return nil
+	})
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
 	return &RunResult{
-		Output:      output.String(),
-		RunId:       runId,
-		ObjectNames: objectNames,
+		Output:    output.String(),
+		RunId:     runId,
+		ImageUrls: imageUrls,
 	}, nil
 }

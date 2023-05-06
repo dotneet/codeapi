@@ -30,7 +30,7 @@ func (handlers *Handlers) Run(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]any{
 		"output": result.Output,
-		"images": result.ObjectNames,
+		"images": result.ImageUrls,
 		"run_id": result.RunId,
 	})
 }

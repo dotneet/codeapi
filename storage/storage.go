@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"fmt"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"os"
@@ -15,9 +14,14 @@ type ImageBucket struct {
 	BucketName string
 	Secret     string
 	AccessKey  string
+	client     *minio.Client
 }
 
-func (bucket *ImageBucket) PutObject(runId string, path string) (string, error) {
+func (bucket *ImageBucket) getClient() (*minio.Client, error) {
+	if bucket.client != nil {
+		return bucket.client, nil
+	}
+
 	endpoint := bucket.Endpoint
 	accessKey := bucket.AccessKey
 	secretKey := bucket.Secret
@@ -27,6 +31,16 @@ func (bucket *ImageBucket) PutObject(runId string, path string) (string, error) 
 		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
 		Secure: useSSL,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	bucket.client = minioClient
+	return minioClient, nil
+}
+
+func (bucket *ImageBucket) PutObject(runId string, path string) (string, error) {
+	minioClient, err := bucket.getClient()
 	if err != nil {
 		return "", err
 	}
@@ -46,11 +60,19 @@ func (bucket *ImageBucket) PutObject(runId string, path string) (string, error) 
 	if err != nil {
 		return "", err
 	}
-	signedUrl, err := minioClient.PresignedGetObject(context.Background(), info.Bucket, info.Key, time.Hour*24*7, nil)
+
+	return info.Key, nil
+}
+
+func (bucket *ImageBucket) GetSignedUrl(key string) (string, error) {
+	expires := time.Hour * 24 * 7
+	minioClient, err := bucket.getClient()
 	if err != nil {
 		return "", err
 	}
-
-	fmt.Printf("Successfully uploaded %s to %s/%s\n", path, bucketName, objectName)
+	signedUrl, err := minioClient.PresignedGetObject(context.Background(), bucket.BucketName, key, expires, nil)
+	if err != nil {
+		return "", err
+	}
 	return signedUrl.String(), nil
 }
