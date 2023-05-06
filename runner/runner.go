@@ -150,7 +150,8 @@ func (runner *DockerRunner) Run(image string, input string) (*RunResult, error) 
 				return err
 			}
 
-			if filepath.Ext(path) == ".png" {
+			ext := filepath.Ext(path)
+			if ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".bmp" {
 				objectName, err := runner.imageBucket.PutObject(runId, path)
 				if err != nil {
 					return err
