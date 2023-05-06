@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: CodeAPI Plugin
-  description: Run program code such as python to analyze datasets. Use it whenever a user want to analyze datasets such as json, csv, long text.
+  description: Run program code such as python to output the analysis about datasets. Use it whenever a user want to analyze datasets such as json, csv, long text. the program code must output the analysis to stdout. An input of this api is always JSON format.
   version: 1.0.0
   servers:
     - url: ${api_base}
@@ -9,7 +9,7 @@ paths:
   /api/run:
     post:
       summary: Run code
-      description: Run program code.
+      description: Run program code. program code should output the results to stdout.
       operationId: run_code
       requestBody:
         content:
@@ -34,72 +34,6 @@ paths:
         - HTTPBearer: []
 components:
   schemas:
-    DocumentChunkMetadata:
-      title: DocumentChunkMetadata
-      type: object
-      properties:
-        source:
-          $ref: "#/components/schemas/Source"
-        source_id:
-          title: Source Id
-          type: string
-        url:
-          title: Url
-          type: string
-        created_at:
-          title: Created At
-          type: string
-        author:
-          title: Author
-          type: string
-        document_id:
-          title: Document Id
-          type: string
-    DocumentChunkWithScore:
-      title: DocumentChunkWithScore
-      required:
-        - text
-        - metadata
-        - score
-      type: object
-      properties:
-        id:
-          title: Id
-          type: string
-        text:
-          title: Text
-          type: string
-        metadata:
-          $ref: "#/components/schemas/DocumentChunkMetadata"
-        embedding:
-          title: Embedding
-          type: array
-          items:
-            type: number
-        score:
-          title: Score
-          type: number
-    DocumentMetadataFilter:
-      title: DocumentMetadataFilter
-      type: object
-      properties:
-        document_id:
-          title: Document Id
-          type: string
-        source:
-          $ref: "#/components/schemas/Source"
-        source_id:
-          title: Source Id
-          type: string
-        author:
-          title: Author
-          type: string
-        start_date:
-          title: Start Date
-          type: string
-        end_date:
-          title: End Date
-          type: string
     HTTPValidationError:
       title: HTTPValidationError
       type: object
@@ -117,13 +51,15 @@ components:
       type: object
       properties:
         language:
-          title: Language
+          title: Programming Language
           type: string
         code:
+          description: program code
           title: Code
           type: string
     RunResponse:
       title: RunResponse
+      description: stdout of program code.
       type: string
   securitySchemes:
     HTTPBearer:

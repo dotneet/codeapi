@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"github.com/dotneet/codeapi/storage"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
@@ -18,8 +20,16 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	bucket := storage.ImageBucket{
+		Endpoint:   viper.GetString("MINIO_ENDPOINT"),
+		BucketName: viper.GetString("MINIO_BUCKET_NAME"),
+		Secret:     viper.GetString("MINIO_SECRET_KEY"),
+		AccessKey:  viper.GetString("MINIO_ACCESS_KEY"),
+	}
+	handlers := handler.NewHandlers(bucket)
+
 	// Routes
-	e.POST("/api/run", handler.Run)
+	e.POST("/api/run", handlers.Run)
 
 	// Get port number from viper configuration
 	port := viper.GetString("port")
@@ -35,7 +45,15 @@ func main() {
 }
 
 func init() {
-	viper.SetEnvPrefix("APP")
+	viper.SetConfigType("env")
+	viper.SetConfigName(".env")
+	viper.AddConfigPath(".")
+	err := viper.ReadInConfig()
+	if err == nil {
+		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	}
+
+	// viper.SetEnvPrefix("APP")
 	viper.AutomaticEnv()
 
 	pflag.String("port", "8080", "Set the port number to listen on")

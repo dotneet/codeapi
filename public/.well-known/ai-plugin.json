@@ -2,8 +2,8 @@
   "schema_version": "v1",
   "name_for_model": "codeapi",
   "name_for_human": "CodeAPI Plugin",
-  "description_for_model": "Plugin for running programming language(such as python) to analyze datasets. Use it whenever a user want to analyze datasets such as json, csv, long text.",
-  "description_for_human": "Analyze datasets using programminga language(such as python).",
+  "description_for_model": "Plugin for running program code(such as python) to analyze the datasets an user provide. Use it whenever a user want to analyze datasets such as json, csv, long text. the program code should output the results to stdout always. if the literal contains newline, always use triple quotes.",
+  "description_for_human": "Analyze the datasets you provide using python interpreter.",
   "auth": {
     "type": "user_http",
     "authorization_type": "bearer"

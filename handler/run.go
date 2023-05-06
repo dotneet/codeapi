@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/dotneet/codeapi/runner"
@@ -8,21 +9,28 @@ import (
 )
 
 type JsonRequest struct {
-	Code string `json:"code"`
+	Language string `json:"language"`
+	Code     string `json:"code"`
 }
 
-func Run(c echo.Context) error {
+func (handlers *Handlers) Run(c echo.Context) error {
 	req := JsonRequest{}
 	err := c.Bind(&req)
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
 
-	runner := runner.NewRunner()
-	reader, err := runner.Run("python_runner", req.Code)
+	runner := runner.NewRunner(handlers.Bucket)
+	code := req.Code
+	fmt.Printf("```%s\n%s```\n\n", req.Language, code)
+	result, err := runner.Run("python_runner", code)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.Stream(http.StatusOK, "text/plain", reader)
+	return c.JSON(http.StatusOK, map[string]any{
+		"output": result.Output,
+		"images": result.ObjectNames,
+		"run_id": result.RunId,
+	})
 }

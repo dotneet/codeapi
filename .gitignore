@@ -5,3 +5,6 @@ __debug_bin
 *.bak
 *.bak.*
 *.local
+
+.env
+.evn.*
