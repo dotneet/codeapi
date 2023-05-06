@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/docker/docker/api/types/container"
@@ -55,6 +56,19 @@ type RunResult struct {
 	RunId       string
 	Output      string
 	ObjectNames []string
+}
+
+func (runner *DockerRunner) appendTimeoutHandler(code string) string {
+	timeout := 10
+	indentedCode := "    " + strings.ReplaceAll(code, "\n", "\n    ")
+	return `import signal
+
+def timeout_handler(signum, frame):
+	raise Exception("timeout")
+
+def main():
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(` + strconv.Itoa(timeout) + ")" + "\n\n" + indentedCode + "\n\n" + "try:\n    main()\nexcept Exception as e:\n    print('Timeout')"
 }
 
 func (runner *DockerRunner) Run(image string, input string) (*RunResult, error) {
@@ -125,9 +139,10 @@ func (runner *DockerRunner) Run(image string, input string) (*RunResult, error) 
 	}
 
 	// Write input to container's stdin
+	code := runner.appendTimeoutHandler(input)
 	go func() {
 		defer attachResponse.CloseWrite()
-		io.WriteString(attachResponse.Conn, input)
+		io.WriteString(attachResponse.Conn, code)
 	}()
 
 	// Read output from container's stdout
