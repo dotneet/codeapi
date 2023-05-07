@@ -61,13 +61,19 @@ func (runner *DockerRunner) appendTimeoutHandler(code string) string {
 	timeout := 10
 	indentedCode := "    " + strings.ReplaceAll(code, "\n", "\n    ")
 	return `import signal
-
+import sys
 def timeout_handler(signum, frame):
-	raise Exception("timeout")
+	raise Exception("Timeout")
 
 def main():
     signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(` + strconv.Itoa(timeout) + ")" + "\n\n" + indentedCode + "\n\n" + "try:\n    main()\nexcept Exception as e:\n    print('Timeout')"
+    signal.alarm(` + strconv.Itoa(timeout) + ")" + "\n\n" + indentedCode + "\n\n" +
+		`try:
+    main()
+except Exception as e:
+    print(e)
+    raise e
+`
 }
 
 func (runner *DockerRunner) Run(image string, input string) (*RunResult, error) {
@@ -149,14 +155,22 @@ func (runner *DockerRunner) Run(image string, input string) (*RunResult, error) 
 	}()
 
 	// Read output from container's stdout
-	var output strings.Builder
-	_, err = stdcopy.StdCopy(&output, &output, attachResponse.Reader)
+	sbOutput := strings.Builder{}
+	_, err = stdcopy.StdCopy(&sbOutput, &sbOutput, attachResponse.Reader)
 	if err != nil {
 		return nil, err
 	}
-
+	output := sbOutput.String()
+	inspectResponse, err := runner.client.ContainerInspect(context.Background(), response.ID)
+	if err != nil {
+		return nil, err
+	}
 	// Remove the container when done
 	runner.client.ContainerRemove(context.Background(), response.ID, types.ContainerRemoveOptions{Force: true})
+	if inspectResponse.State.ExitCode != 0 {
+		lines := strings.Split(output, "\n")
+		return &RunResult{RunId: runId, Output: lines[0]}, nil
+	}
 
 	// Read output from container's stdout and write it to the pipe
 	imageUrls := make([]string, 0)
@@ -185,7 +199,7 @@ func (runner *DockerRunner) Run(image string, input string) (*RunResult, error) 
 		fmt.Println("Error:", err)
 	}
 	return &RunResult{
-		Output:    output.String(),
+		Output:    output,
 		RunId:     runId,
 		ImageUrls: imageUrls,
 	}, nil
