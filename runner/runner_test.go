@@ -6,7 +6,7 @@ import (
 )
 
 func TestRunner(t *testing.T) {
-	runner := NewRunner(storage.ImageBucket{
+	runner := NewPythonRunner(storage.ImageBucket{
 		Endpoint: "localhost:9000",
 	})
 	code := "print('hello world')"

@@ -20,10 +20,10 @@ func (handlers *Handlers) Run(c echo.Context) error {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
 
-	runner := runner.NewRunner(handlers.Bucket)
+	runner := runner.NewPythonRunner(handlers.Bucket)
 	code := req.Code
 	fmt.Printf("```%s\n%s```\n\n", req.Language, code)
-	result, err := runner.Run("python_runner", code)
+	result, err := runner.Run(code)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
