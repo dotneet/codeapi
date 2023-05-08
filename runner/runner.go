@@ -117,7 +117,7 @@ func (runner *DockerRunner) Run(input string) (*RunResult, error) {
 func (runner *DockerRunner) uploadFiles(runId string, tmpDir string) ([]string, error) {
 	// Read output from container's stdout and write it to the pipe
 	imageUrls := make([]string, 0)
-	extensions := []string{".png", ".jpg", ".jpeg", ".gif", ".bmp"}
+	extensions := []string{".png", ".jpg", ".jpeg", ".gif", ".bmp", ".csv", ".json", ".txt", ".md", ".mp3", ".wav"}
 
 	// Check for .png files in the temporary directory
 	walkErr := filepath.Walk(tmpDir, func(path string, info os.FileInfo, err error) error {
