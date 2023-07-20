@@ -6,6 +6,13 @@ Prepare a docker image.
 ./build-image.sh
 ```
 
+Edit settings.
+
+```bash
+cp .env-example .env
+vim .env
+```
+
 Run the server.
 
 ```bash

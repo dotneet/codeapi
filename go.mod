@@ -3,7 +3,7 @@ module github.com/dotneet/codeapi
 go 1.20
 
 require (
-	github.com/docker/docker v23.0.5+incompatible
+	github.com/docker/docker v24.0.4+incompatible
 	github.com/google/uuid v1.3.0
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/minio/minio-go/v7 v7.0.52

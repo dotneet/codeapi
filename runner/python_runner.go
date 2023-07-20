@@ -15,18 +15,21 @@ import (
 )
 
 type PythonSpec struct {
+	containerImageName string
 }
 
-func NewPythonRunner(bucket storage.ImageBucket) Runner {
+func NewPythonRunner(containerImageName string, bucket storage.ImageBucket) Runner {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
 	}
 
 	return &DockerRunner{
-		client:       cli,
-		imageBucket:  &bucket,
-		languageSpec: &PythonSpec{},
+		client:      cli,
+		imageBucket: &bucket,
+		languageSpec: &PythonSpec{
+			containerImageName: containerImageName,
+		},
 	}
 }
 
@@ -50,9 +53,8 @@ except Exception as e:
 }
 
 func (runner *PythonSpec) createContainer(client *client.Client, tmpDir string) (container.CreateResponse, error) {
-	image := "python_runner"
 	config := &container.Config{
-		Image:      image,
+		Image:      runner.containerImageName,
 		Cmd:        []string{"python", "-"},
 		Tty:        false,
 		OpenStdin:  true,

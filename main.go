@@ -5,6 +5,7 @@ import (
 	"github.com/dotneet/codeapi/storage"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"os"
 
 	"github.com/dotneet/codeapi/handler"
 	"github.com/dotneet/codeapi/template"
@@ -26,7 +27,8 @@ func main() {
 		Secret:     viper.GetString("MINIO_SECRET_KEY"),
 		AccessKey:  viper.GetString("MINIO_ACCESS_KEY"),
 	}
-	handlers := handler.NewHandlers(bucket)
+	pythonContainerImage := viper.GetString("PYTHON_RUNNER_IMAGE")
+	handlers := handler.NewHandlers(pythonContainerImage, bucket)
 
 	// Routes
 	e.POST("/api/run", handlers.Run)
@@ -55,6 +57,11 @@ func init() {
 
 	// viper.SetEnvPrefix("APP")
 	viper.AutomaticEnv()
+
+	dockerHost := viper.GetString("DOCKER_HOST")
+	if dockerHost != "" {
+		os.Setenv("DOCKER_HOST", dockerHost)
+	}
 
 	pflag.String("port", "8080", "Set the port number to listen on")
 	pflag.String("apibase", "http://localhost:8080", "Set the port number to listen on")

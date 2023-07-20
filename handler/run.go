@@ -20,7 +20,7 @@ func (handlers *Handlers) Run(c echo.Context) error {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
 
-	runner := runner.NewPythonRunner(handlers.Bucket)
+	runner := runner.NewPythonRunner(handlers.ContainerImageName, handlers.Bucket)
 	code := req.Code
 	fmt.Printf("```%s\n%s```\n\n", req.Language, code)
 	result, err := runner.Run(code)

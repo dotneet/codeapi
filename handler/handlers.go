@@ -5,11 +5,13 @@ import (
 )
 
 type Handlers struct {
-	Bucket storage.ImageBucket
+	ContainerImageName string
+	Bucket             storage.ImageBucket
 }
 
-func NewHandlers(bucket storage.ImageBucket) *Handlers {
+func NewHandlers(containerImageName string, bucket storage.ImageBucket) *Handlers {
 	return &Handlers{
-		Bucket: bucket,
+		ContainerImageName: containerImageName,
+		Bucket:             bucket,
 	}
 }
